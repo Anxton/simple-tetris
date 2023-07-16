@@ -13,10 +13,10 @@ function makePiece(pieceName='t') {
     switch (pieceName.toLowerCase()) {
         case 't':
             pieceObject.blocks = [
-                [5, 0],
+                [4, 0],
+                [3, 1],
                 [4, 1],
-                [5, 1],
-                [6, 1]
+                [5, 1]
             ]
             break
         case 'i':
