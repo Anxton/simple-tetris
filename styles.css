@@ -1,0 +1,163 @@
+* {
+    padding: 0;
+    margin: 0;
+    font-family: 'Roboto';
+    box-sizing: border-box;
+
+    --square: 1.5rem;
+
+    --hold-width: calc(6*var(--square));
+    --hold-height: calc(4*var(--square));
+    
+    --matrix-width: calc(10*var(--square));
+    --matrix-height: calc(20*var(--square));
+
+    --queue-width: calc(6*var(--square));
+    --queue-height: calc(16*var(--square));
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: bisque;
+}
+
+#title {
+    padding: 0.2rem;
+    margin: 1rem;
+    color: pink;
+    text-shadow: -1px 0 black,
+                 1px 0 black,
+                 0 -1px black,
+                 0 1px black;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    width: 100%;
+}
+
+.card {
+    padding: 1rem;
+    background-color: pink;
+    border-radius: 1rem;
+}
+
+#game {
+    display: flex;
+    justify-content: center;
+
+    gap: 1rem;
+
+    width: 100%;
+}
+
+.board {
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: content-box;
+    border: 1px solid darkgray;
+}
+
+#game-hold {
+    width: fit-content;
+    height: fit-content;
+}
+#hold {
+    width: var(--hold-width);
+    height: var(--hold-height);
+}
+
+#game-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+#matrix {
+    width: var(--matrix-width);
+    height: var(--matrix-height);
+}
+
+#game-queue {
+    width: fit-content;
+    height: fit-content;
+}
+#queue {
+    width: var(--queue-width);
+    height: var(--queue-height);
+}
+
+square {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: var(--square);
+    height: var(--square);
+    border: 1px solid darkgray;
+    background-color: black;
+    color: white;
+}
+
+#info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: var(--matrix-width);
+}
+
+#score {
+    font-size: 1.2rem;
+}
+#menu {
+    display: flex;
+    justify-content: space-around;
+    /* width: 100%; */
+    width: var(--matrix-width);
+    /* width: calc(1rem + var(--matrix-width)); */
+    /* width: calc(2rem + var(--matrix-width)); */
+}
+
+#menu.card {
+    padding: 0.5rem;
+}
+
+#menu > button {
+    width: 5rem;
+    height: 2rem;
+    border-radius: 5px;
+}
+
+
+.t {
+    background-color: violet;
+    /* background-color: blueviolet; */
+}
+.i {
+    background-color: cyan;
+}
+.o {
+    background-color: gold;
+}
+.l {
+    background-color: orange;
+}
+.s {
+    background-color: lime;
+    /* background-color: greenyellow; */
+}
+.j {
+    background-color: blue;
+}
+.z {
+    background-color: red;
+    /* background-color: orangered; */
+}
