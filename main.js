@@ -99,6 +99,12 @@ function blockAt(x, y) {
     return matrix[x][y]
 }
 
+/**
+ * Returns the <square> html element at coords (x, y)
+ * @param {number} x 
+ * @param {number} y 
+ * @returns {HTMLElement} square element
+ */
 function squareAt(x, y) {
     if (x < 0 || x > 9) throw new Error('x out of bounds: ' + x)
     if (y < 0 || y > 19) throw new Error('y out of bounds: ' + y)
@@ -147,15 +153,61 @@ function toTimerString(ms) {
     return `${mString}:${sString}`
 }
 
+/**
+ * Moves the activePiece in a certain direction
+ * @param {string} direction 'down' / 'left' / 'right'
+ * @returns {boolean} true if moved, false if can't move
+ */
+function move(direction) {
+    switch (direction) {
+        case 'down':
+            for (const block of activePiece.blocks) {
+                if (isOutOfBounds([block[0], block[1]+1]) || blockAt(block[0], block[1]+1)) {
+                    return false
+                }
+            }
+            activePiece.blocks.forEach((block) => {
+                block[1]++
+            })
+            break
 
-function down() {
-    if (!isMovable(activePiece, 'down')) {
-        return
+        case 'left':
+            for (const block of activePiece.blocks) {
+                if (isOutOfBounds([block[0]-1, block[1]] || blockAt(block[0]-1, block[1]))) {
+                    return false
+                }
+            }
+            activePiece.blocks.forEach((block) => {
+                block[0]--
+            })
+            break
+
+        case 'right':
+            for (const block of activePiece.blocks) {
+                block[0] += 1
+                if (isOutOfBounds([block[0]+1, block[1]] || blockAt(block[0]+1, block[1]))) {
+                    return false
+                }
+            }
+            activePiece.blocks.forEach((block) => {
+                block[0]++
+            })
+            break
+
+        default:
+            throw new Error(`unknown direction: ${direction}`)
     }
-    activePiece.blocks.forEach((block) => {
-        block[1]++ // y goes down for each block of the piece
-    })
+    return true
+    
 }
+
+function isOutOfBounds(block) {
+    if (block[0] < 0 || block[0] > 9 || block[1] < 0 || block[1] > 19)
+        return true
+    else
+        return false
+}
+
 /**
  * 
  * @param piece
@@ -163,42 +215,7 @@ function down() {
  * @returns {boolean}
 */
 function isMovable(piece, direction) {
-    function isOutOfBounds(block) {
-        if (block[0] < 0 || block[0] > 9 || block[1] < 0 || block[1] > 19)
-            return true
-        else
-            return false
-    }
-    switch (direction) {
-        case 'down':
-            for (const block of piece.blocks) {
-                if (isOutOfBounds([block[0], block[1]+1]) || blockAt(block[0], block[1]+1)) {
-                    return false
-                }
-            }
-            break
-
-        case 'left':
-            for (const block of piece.blocks) {
-                if (isOutOfBounds([block[0]-1, block[1]] || blockAt(block[0]-1, block[1]))) {
-                    return false
-                }
-            }
-            break
-
-        case 'right':
-            for (const block of piece.blocks) {
-                block[0] += 1
-                if (isOutOfBounds([block[0]+1, block[1]] || blockAt(block[0]+1, block[1]))) {
-                    return false
-                }
-            }
-            break
-
-        default:
-            break
-    }
-    return true
+    
 }
 
 function debug() {
