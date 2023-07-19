@@ -111,10 +111,10 @@ function squareAt(x, y) {
     return squares[x + y*10]
 }
 
-// function render() {
-//     renderMatrix()
-//     renderTimer()
-// }
+function render() {
+    renderMatrix()
+    renderTimer()
+}
 
 function renderMatrix() {
     // render board
@@ -184,7 +184,6 @@ function move(direction) {
 
         case 'right':
             for (const block of activePiece.blocks) {
-                block[0] += 1
                 if (isOutOfBounds([block[0]+1, block[1]] || blockAt(block[0]+1, block[1]))) {
                     return false
                 }
@@ -197,6 +196,7 @@ function move(direction) {
         default:
             throw new Error(`unknown direction: ${direction}`)
     }
+    render()
     return true
     
 }
@@ -246,7 +246,7 @@ function tick() {
         return
     }
     if (ticks % 60 === 0) {
-        down()
+        move('down')
         renderMatrix()
     }
     ticks++
@@ -255,12 +255,17 @@ function tick() {
 
 setInterval(tick, 16.67)
 
-matrixEl.addEventListener('keydown', (ev) => {
-    if (ev.code == 'ArrowLeft')
-        left()
-    if (ev.code == 'ArrowRight')
-        right()
-    if (ev.code == 'ArrowDown')
-        console.log("alalo");
-        // down()
+window.addEventListener('keydown', (event) => {
+    if (event.code == 'ArrowLeft') {
+        move('left')
+        console.log('left input');
+    }
+    if (event.code == 'ArrowRight') {
+        move('right')
+        console.log('right input');
+    }
+    if (event.code == 'ArrowDown') {
+        move('down')
+        console.log('down input');
+    }
 })
