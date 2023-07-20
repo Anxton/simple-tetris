@@ -269,11 +269,21 @@ function tick() {
         return
     }
     if (ticks % 60 === 0) {
-        move('down')
+        const moved = move('down')
+        if (!moved) {
+            settle()
+        }
         renderMatrix()
     }
     ticks++
     renderTimer()
+}
+
+function settle() {
+    activePiece.blocks.forEach((block) => {
+        matrix[block[0]][block[1]] = activePiece.piece
+    })
+    activePiece = makePiece()
 }
 
 setInterval(tick, 16.67)
