@@ -3,11 +3,18 @@ const startButton = document.getElementById("startButton")
 const squares = document.querySelectorAll("#matrix square")
 const matrixEl = document.getElementById("matrix")
 
-let startDate = Date.now()
+let startDate
 let playing = false
+let activePiece
+let ticks
+let matrix
 
-function makePiece(pieceName='t') {
+function makePiece(pieceName) {
     const pieceObject = new Object()
+    if (pieceName == undefined) {
+        console.log('random: ')
+        pieceName = ['t', 'i', 'o', 'l', 's', 'j', 'z'][Math.floor(Math.random()*7)]
+    }
     pieceObject.piece = pieceName.toLowerCase() // piece.piece = 'l'
     pieceObject.orientation = 'north' // piece.orientation = 'north'
     switch (pieceName.toLowerCase()) {
@@ -74,11 +81,21 @@ function makePiece(pieceName='t') {
     return pieceObject
 }
 
-let activePiece = makePiece("t")
-
-let ticks
-
-const matrix = [
+const baseMatrix = [
+    // sideways and flipped so it's matrix[x][y] (matrix[0],[19] on bottom)
+    // should it rather be matrix[line][col] like in maths ? (matrix[19][0] would be on bottom)
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+]
+const debugMatrix = [
     // sideways and flipped so it's matrix[x][y] (matrix[0],[19] on bottom)
     // should it rather be matrix[line][col] like in maths ? (matrix[19][0] would be on bottom)
     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'o', 'o'],
@@ -160,9 +177,19 @@ function toTimerString(ms) {
  */
 function move(direction) {
     switch (direction) {
+        case 'up':
+            for (const block of activePiece.blocks) {
+                if (isOutOfBounds([block[0], block[1]-1]) || blockAt(block[0], block[1]-1) != '') {
+                    return false
+                }
+            }
+            activePiece.blocks.forEach((block) => {
+                block[1]--
+            })
+            break
         case 'down':
             for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0], block[1]+1]) || blockAt(block[0], block[1]+1)) {
+                if (isOutOfBounds([block[0], block[1]+1]) || blockAt(block[0], block[1]+1) != '') {
                     return false
                 }
             }
@@ -173,7 +200,7 @@ function move(direction) {
 
         case 'left':
             for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0]-1, block[1]] || blockAt(block[0]-1, block[1]))) {
+                if (isOutOfBounds([block[0]-1, block[1]]) || blockAt(block[0]-1, block[1]) != '') {
                     return false
                 }
             }
@@ -184,7 +211,7 @@ function move(direction) {
 
         case 'right':
             for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0]+1, block[1]] || blockAt(block[0]+1, block[1]))) {
+                if (isOutOfBounds([block[0]+1, block[1]]) || blockAt(block[0]+1, block[1]) != '') {
                     return false
                 }
             }
@@ -208,16 +235,6 @@ function isOutOfBounds(block) {
         return false
 }
 
-/**
- * 
- * @param piece
- * @param {string} direction
- * @returns {boolean}
-*/
-function isMovable(piece, direction) {
-    
-}
-
 function debug() {
     for (let x = 0; x < matrix.length; x++) {
         for (let y = 0; y < matrix[0].length; y++) {
@@ -229,15 +246,21 @@ function debug() {
 
 // debug()
 
-
-
 function settings() { }
 
 function start() {
+    activePiece = makePiece()
+    matrix = debugMatrix
     ticks = 0
-    playing = !playing
-    startButton.textContent = playing ? "Stop" : "New game"
     startDate = Date.now()
+}
+
+function startStopButton() {
+    playing = !playing
+    if (playing) {
+        start()
+    }
+    startButton.textContent = playing ? "Stop" : "New game"
 }
 
 
@@ -256,16 +279,16 @@ function tick() {
 setInterval(tick, 16.67)
 
 window.addEventListener('keydown', (event) => {
-    if (event.code == 'ArrowLeft') {
-        move('left')
-        console.log('left input');
-    }
-    if (event.code == 'ArrowRight') {
-        move('right')
-        console.log('right input');
+    if (event.code == 'ArrowUp') {
+        move('up')
     }
     if (event.code == 'ArrowDown') {
         move('down')
-        console.log('down input');
+    }
+    if (event.code == 'ArrowLeft') {
+        move('left')
+    }
+    if (event.code == 'ArrowRight') {
+        move('right')
     }
 })
