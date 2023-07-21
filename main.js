@@ -1,22 +1,49 @@
 const timerSpan = document.getElementById("timer")
 const startButton = document.getElementById("startButton")
+const holdSquares = document.querySelectorAll("#hold square")
 const squares = document.querySelectorAll("#matrix square")
-const matrixEl = document.getElementById("matrix")
+const queueSquares = document.querySelectorAll("#queue square")
 
 let startDate
 let playing = false
 let activePiece
 let ticks
 let matrix
+let lockout
+
+function start() {
+    matrix = [
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+    ]
+    newPiece()
+    startDate = Date.now()
+}
+
+function newPiece() {
+    activePiece = makePiece()
+    ticks = 0
+    lockout = 0
+    renderActivePiece()
+}
 
 function makePiece(pieceName) {
     const pieceObject = new Object()
     if (pieceName == undefined) {
-        console.log('random: ')
         pieceName = ['t', 'i', 'o', 'l', 's', 'j', 'z'][Math.floor(Math.random()*7)]
     }
+
     pieceObject.piece = pieceName.toLowerCase() // piece.piece = 'l'
     pieceObject.orientation = 'north' // piece.orientation = 'north'
+
     switch (pieceName.toLowerCase()) {
         case 't':
             pieceObject.blocks = [
@@ -78,6 +105,8 @@ function makePiece(pieceName) {
             throw new Error('Unknown piece: ' + pieceObject)
     }
 
+    pieceObject.isGrounded = pieceObject.blocks.some(block => isOutOfBounds(block[0], block[1]) || blockAt(block[0], block[1]+1))
+
     return pieceObject
 }
 
@@ -110,6 +139,12 @@ const debugMatrix = [
     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'j', 'j', 'j'],
 ]
 
+/**
+ * Returns the block at coords (x, y)
+ * @param {number} x 
+ * @param {number} y 
+ * @returns {string} block
+ */
 function blockAt(x, y) {
     if (x < 0 || x > 9) throw new Error('x out of bounds: ' + x)
     if (y < 0 || y > 19) throw new Error('y out of bounds: ' + y)
@@ -128,18 +163,11 @@ function squareAt(x, y) {
     return squares[x + y*10]
 }
 
-function render() {
-    renderMatrix()
-    renderTimer()
-}
-
-function renderMatrix() {
-    // render board
-    renderBoard()
-    // render activePiece
+function renderBoard() {
+    renderSettledBlocks()
     renderActivePiece()
 }
-function renderBoard() {
+function renderSettledBlocks() {
     for (let x = 0; x < matrix.length; x++) {
         for (let y = 0; y < matrix[0].length; y++) {
             squareAt(x, y).className = matrix[x][y]
@@ -152,19 +180,19 @@ function renderActivePiece() {
     })
 }
 
-function renderTimer() {
+function updateTimer() {
     timerSpan.textContent = playing
         ? toTimerString(Date.now() - startDate)
         : "00:00.00"
 }
 function toTimerString(ms) {
-    let s = ms / 1000
-    sString = (s % 60 < 10)
+    const s = ms / 1000
+    const sString = (s % 60 < 10)
         ? '0' + (s % 60).toFixed(3)
         : (s % 60).toFixed(3)
 
-    m = Math.trunc(s / 60)
-    mString = (m < 10)
+    const m = Math.trunc(s / 60)
+    const mString = (m < 10)
         ? '0' + m
         : m
     return `${mString}:${sString}`
@@ -172,88 +200,64 @@ function toTimerString(ms) {
 
 /**
  * Moves the activePiece in a certain direction
- * @param {string} direction 'down' / 'left' / 'right'
+ * @param {string} direction 'down' / 'left' / 'right' / 'up'
  * @returns {boolean} true if moved, false if can't move
  */
 function move(direction) {
+    let projectedBlocks
     switch (direction) {
         case 'up':
-            for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0], block[1]-1]) || blockAt(block[0], block[1]-1) != '') {
-                    return false
-                }
-            }
-            activePiece.blocks.forEach((block) => {
-                block[1]--
-            })
+            projectedBlocks = activePiece.blocks.map(block => [block[0], block[1]-1])
+            lockout = 0
             break
-        case 'down':
-            for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0], block[1]+1]) || blockAt(block[0], block[1]+1) != '') {
-                    return false
-                }
-            }
-            activePiece.blocks.forEach((block) => {
-                block[1]++
-            })
+            
+        case 'down':       
+            projectedBlocks = activePiece.blocks.map(block => [block[0], block[1]+1])
             break
-
+            
         case 'left':
-            for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0]-1, block[1]]) || blockAt(block[0]-1, block[1]) != '') {
-                    return false
-                }
-            }
-            activePiece.blocks.forEach((block) => {
-                block[0]--
-            })
+            projectedBlocks = activePiece.blocks.map(block => [block[0]-1, block[1]])
+            lockout = 0
             break
-
+            
         case 'right':
-            for (const block of activePiece.blocks) {
-                if (isOutOfBounds([block[0]+1, block[1]]) || blockAt(block[0]+1, block[1]) != '') {
-                    return false
-                }
-            }
-            activePiece.blocks.forEach((block) => {
-                block[0]++
-            })
+            projectedBlocks = activePiece.blocks.map(block => [block[0]+1, block[1]])
+            lockout = 0
             break
-
+            
         default:
             throw new Error(`unknown direction: ${direction}`)
     }
-    render()
+
+    // return if the projected placement is invalid
+    if (projectedBlocks.some(block => isOutOfBounds(block[0], block[1]) || blockAt(block[0], block[1]))) {
+        return false
+    }
+
+    // move
+    activePiece.blocks = projectedBlocks
+
+    // set grounded state
+    activePiece.isGrounded = activePiece.blocks.some(block => isOutOfBounds(block[0], block[1]+1) || blockAt(block[0], block[1]+1))
+
+    renderBoard()
     return true
     
 }
 
-function isOutOfBounds(block) {
-    if (block[0] < 0 || block[0] > 9 || block[1] < 0 || block[1] > 19)
-        return true
-    else
-        return false
+function isOutOfBounds(x, y) {
+    return (x < 0 || x > 9 || y < 0 || y > 19)
 }
 
-function debug() {
-    for (let x = 0; x < matrix.length; x++) {
-        for (let y = 0; y < matrix[0].length; y++) {
-            squareAt(x, y).textContent = `${x}, ${y}`
-            squareAt(x, y).style['font-size'] = '0.6rem'
-        }
-    }
+function settle() {
+    activePiece.blocks.forEach((block) => {
+        matrix[block[0]][block[1]] = activePiece.piece
+    })
+    newPiece()
 }
 
-// debug()
 
 function settings() { }
-
-function start() {
-    activePiece = makePiece()
-    matrix = debugMatrix
-    ticks = 0
-    startDate = Date.now()
-}
 
 function startStopButton() {
     playing = !playing
@@ -268,23 +272,18 @@ function tick() {
     if (!playing) {
         return
     }
-    if (ticks % 60 === 0) {
-        const moved = move('down')
-        if (!moved) {
-            settle()
-        }
-        renderMatrix()
+    if (lockout === 40) {
+        settle()
+    } else if (ticks % 40 === 0) {
+        move('down')
+    }
+    if (activePiece.isGrounded) {
+        lockout++
     }
     ticks++
-    renderTimer()
+    updateTimer()
 }
 
-function settle() {
-    activePiece.blocks.forEach((block) => {
-        matrix[block[0]][block[1]] = activePiece.piece
-    })
-    activePiece = makePiece()
-}
 
 setInterval(tick, 16.67)
 
@@ -302,3 +301,14 @@ window.addEventListener('keydown', (event) => {
         move('right')
     }
 })
+
+// function debug() {
+//     for (let x = 0; x < matrix.length; x++) {
+//         for (let y = 0; y < matrix[0].length; y++) {
+//             squareAt(x, y).textContent = `${x}, ${y}`
+//             squareAt(x, y).style['font-size'] = '0.6rem'
+//         }
+//     }
+// }
+
+// debug()
